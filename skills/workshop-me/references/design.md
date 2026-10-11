@@ -1,6 +1,6 @@
 # Design
 
-The page uses one fixed visual system, implemented in `assets/template.html`. It began as the design language of the Synclete app ("dot": monochrome ink on black or warm off-white, with colour kept for meaning) and is shared by a family of skills (feature-storming, workshop-me). This file states it so the look can be kept exact, and so the template can be repaired or extended without drifting.
+The page uses one fixed visual system, implemented in `assets/template.html`. It began as the design language of the Synclete app ("dot": monochrome ink on black or warm off-white, with colour kept for meaning) and is shared by a family of skills (featspiration, workshop-me). This file states it so the look can be kept exact, and so the template can be repaired or extended without drifting.
 
 You do not apply any of this by hand when writing a page: the template already does. Read it when you need to choose an `aura`, decide how to tone table cells, or change the template itself.
 

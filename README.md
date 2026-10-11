@@ -108,7 +108,7 @@ skills/workshop-me/
 
 ## Design
 
-The page's look is fixed on purpose and documented in [`references/design.md`](skills/workshop-me/references/design.md): monochrome ink on black or warm off-white, a faint dot field, the Doto dot-matrix face for headings and numbers, hairlines in place of shadows, and colour only where it means something. It shares this base with [feature-storming](https://github.com/KareemmSayed/feature-storming).
+The page's look is fixed on purpose and documented in [`references/design.md`](skills/workshop-me/references/design.md): monochrome ink on black or warm off-white, a faint dot field, the Doto dot-matrix face for headings and numbers, hairlines in place of shadows, and colour only where it means something. It shares this base with [featspiration](https://github.com/KareemmSayed/featspiration).
 
 That is only the frame. The variations inside it are not styled by the template at all. Their look comes from what you ask for in the prompt, then from your project's own design if it has one, and otherwise from the agent, which is instructed to work as a product designer: pick a direction that fits the subject, commit to it, and avoid the usual generated look.
 
