@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fieldnote Insights Workshop</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@600;700;900&family=Inter+Tight:wght@400;500;600;700&display=swap">
+<style>
+/* Workshop page. Do not edit per page: content comes from the JSON block at the end.
+   ==== Shared base. The same tokens and primitives as every skill in this family: keep them identical (references/design.md). ====
+   Layout: one reading column on a dot-field ground. One aura hero, hairline surfaces, Doto for display
+   headings and numbers only, colour only where it means something (effort, cool to hot). */
+:root {
+  color-scheme: dark;
+  --bg: #000000; --surface: #0c0c0d; --elevated: #161618; --container: #1f1f22;
+  --line: #1e1e21; --line-strong: #2a2a2e;
+  --text: #f4f3ef; --muted: #8e9195; --neutral: #76797d;
+  --ink: #f4f3ef; --on-ink: #000000; --dim: #232326;
+  --positive: #32d583; --warning: #ffb224; --danger: #ff5a4e;
+  --e1: #4da8ff; --e3: #a56bff; --e5: #ff7a45;
+  --glass: rgba(12, 12, 13, 0.78); --dot-field: rgba(244, 243, 239, 0.055);
+  --aura-text: #f4f3ef; --aura-muted: rgba(244, 243, 239, 0.72);
+  --font-dot: 'Doto', ui-monospace, monospace;
+  --font-sans: 'Helvetica Neue', Helvetica, 'Inter Tight', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --r-tile: 14px; --r-card: 22px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f4f3ef; --surface: #fcfbf9; --elevated: #edece7; --container: #e4e2dc;
+    --line: #e2e0da; --line-strong: #d3d1ca;
+    --text: #0a0a0a; --muted: #5f6266; --neutral: #76797d;
+    --ink: #0a0a0a; --on-ink: #f4f3ef; --dim: #dedcd5;
+    --positive: #1b7f4b; --warning: #a15c00; --danger: #c7281b;
+    --glass: rgba(252, 251, 249, 0.82); --dot-field: rgba(10, 10, 10, 0.07);
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f3ef; --surface: #fcfbf9; --elevated: #edece7; --container: #e4e2dc;
+  --line: #e2e0da; --line-strong: #d3d1ca;
+  --text: #0a0a0a; --muted: #5f6266; --neutral: #76797d;
+  --ink: #0a0a0a; --on-ink: #f4f3ef; --dim: #dedcd5;
+  --positive: #1b7f4b; --warning: #a15c00; --danger: #c7281b;
+  --glass: rgba(252, 251, 249, 0.82); --dot-field: rgba(10, 10, 10, 0.07);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background-color: var(--bg); color: var(--text);
+  font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(var(--dot-field) 1px, transparent 1.2px);
+  background-size: 22px 22px; background-position: -11px -11px;
+}
+:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+a { color: inherit; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul { padding-inline-start: 18px; display: flex; flex-direction: column; gap: 6px; }
+li::marker { color: var(--neutral); }
+code { font-family: var(--font-mono); font-size: 0.86em; background: var(--elevated); padding: 1px 5px; border-radius: 5px; }
+b { font-weight: 600; }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: var(--glass); backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px);
+  border-bottom: 1px solid var(--line);
+}
+.bar-in { max-width: 940px; margin: 0 auto; padding: 10px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.mark { font-family: var(--font-dot); font-weight: 900; font-size: 15px; letter-spacing: 0.06em; margin-inline-end: auto; text-transform: uppercase; }
+.bar nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.bar nav a { text-decoration: none; font-size: 13px; font-weight: 500; color: var(--muted); padding: 5px 10px; border-radius: 999px; }
+.bar nav a:hover { color: var(--text); background: var(--elevated); }
+
+.wrap { max-width: 940px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 80px; display: flex; flex-direction: column; gap: 40px; }
+section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 70px; }
+.eyebrow { font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+h2 { font-family: var(--font-dot); font-weight: 700; font-size: 26px; line-height: 1.15; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 68ch; }
+
+/* Hero: near-black with one glow and light text in both themes. Pick the glow for what it means. */
+.aura {
+  --aura-base: #0b0714;
+  --aura-glow: radial-gradient(circle at 15% 110%, rgba(150, 84, 255, 0.6) 0%, rgba(70, 24, 150, 0.28) 45%, rgba(11, 7, 20, 0) 80%);
+  color: var(--aura-text); background-color: var(--aura-base); background-image: var(--aura-glow);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 26px;
+  padding: 28px; display: flex; flex-direction: column; gap: 14px;
+}
+.aura-graphite { --aura-base: #0e0e10; --aura-glow: radial-gradient(circle at 85% 0%, rgba(160, 163, 168, 0.3) 0%, rgba(14, 14, 16, 0) 70%); }
+.aura-ember { --aura-base: #120606; --aura-glow: radial-gradient(circle at 50% -10%, rgba(255, 72, 48, 0.62) 0%, rgba(120, 18, 10, 0.3) 45%, rgba(18, 6, 6, 0) 80%); }
+.aura-moss { --aura-base: #050e08; --aura-glow: radial-gradient(circle at 100% 100%, rgba(84, 214, 120, 0.5) 0%, rgba(20, 90, 40, 0.25) 45%, rgba(5, 14, 8, 0) 80%); }
+.aura-amber { --aura-base: #110b03; --aura-glow: radial-gradient(circle at 90% 0%, rgba(255, 178, 36, 0.5) 0%, rgba(140, 82, 0, 0.24) 45%, rgba(17, 11, 3, 0) 80%); }
+.aura-azure { --aura-base: #040a14; --aura-glow: radial-gradient(circle at 0% 0%, rgba(77, 168, 255, 0.52) 0%, rgba(22, 72, 150, 0.26) 45%, rgba(4, 10, 20, 0) 80%); }
+.aura-flame { --aura-base: #140804; --aura-glow: radial-gradient(circle at 85% 110%, rgba(255, 122, 69, 0.6) 0%, rgba(150, 52, 12, 0.28) 45%, rgba(20, 8, 4, 0) 80%); }
+.aura .eyebrow { color: var(--aura-muted); }
+.aura h1 { font-family: var(--font-dot); font-weight: 600; font-size: clamp(27px, 5.4vw, 42px); line-height: 1.08; text-wrap: balance; max-width: 20ch; }
+.aura p { color: var(--aura-muted); max-width: 62ch; }
+.aura p b { color: var(--aura-text); }
+.aura code { background: rgba(255, 255, 255, 0.1); }
+.steps { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; flex-direction: row; }
+.steps li { font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.16); color: var(--aura-text); }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.block.wide { grid-column: 1 / -1; }
+.block h3 { font-size: 15px; font-weight: 600; }
+.block li { font-size: 14px; }
+.note { font-size: 13px; color: var(--muted); }
+
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-tile); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: start; padding: 9px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-dot); font-weight: 900; font-size: 14px; }
+td.bad { color: var(--danger); }
+td.good { color: var(--positive); }
+td.warn { color: var(--warning); }
+td.muted { color: var(--muted); }
+td.wrapcell { white-space: normal; min-width: 180px; }
+td a { text-decoration: none; font-weight: 600; }
+td a:hover { text-decoration: underline; }
+
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { font: inherit; font-size: 13px; font-weight: 500; color: var(--muted); background: transparent; border: 1px solid var(--line-strong); padding: 6px 13px; border-radius: 999px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.count { margin-inline-start: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.cards { display: flex; flex-direction: column; gap: 16px; }
+.tier-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-top: 12px; }
+.tier-head span { font-size: 13px; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 22px; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 70px; min-width: 0; }
+.card.built { opacity: 0.62; }
+.card-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.no { font-family: var(--font-dot); font-weight: 900; font-size: 15px; color: var(--muted); }
+.tag { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; color: var(--muted); border: 1px solid var(--line-strong); padding: 2px 8px; border-radius: 999px; }
+.size { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); display: block; }
+.built-toggle { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.built-toggle input { accent-color: var(--positive); width: 15px; height: 15px; margin: 0; }
+.card h3 { font-family: var(--font-dot); font-weight: 700; font-size: 22px; line-height: 1.15; text-wrap: balance; }
+.desc { max-width: 70ch; }
+.needs { font-size: 13px; color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cols.one { grid-template-columns: minmax(0, 1fr); }
+.col { background: var(--elevated); border-radius: var(--r-tile); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.col li { font-size: 13.5px; }
+.col code { background: var(--container); }
+.lands { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lands code { font-size: 12px; overflow-wrap: anywhere; }
+
+.code { border: 1px solid var(--line-strong); border-radius: var(--r-tile); overflow: hidden; background: var(--elevated); min-width: 0; }
+.code-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; padding-inline-start: 14px; border-bottom: 1px solid var(--line-strong); }
+.code-head .eyebrow { margin-inline-end: auto; }
+.btn { font: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; border: 1px solid var(--line-strong); background: transparent; color: var(--text); }
+.btn.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.code pre { margin: 0; padding: 14px 16px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 300px; overflow: auto; color: var(--text); text-align: start; }
+.code.open pre { max-height: none; }
+
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 720px) {
+  .grid, .cols { grid-template-columns: minmax(0, 1fr); }
+  .wrap, .bar-in { padding-inline: 16px; }
+  .aura { padding: 22px; }
+  .card { padding: 18px; }
+  .built-toggle { margin-inline-start: 0; }
+}
+
+/* ==== Workshop components (this skill only). Everything above is the shared base: see references/design.md. ==== */
+.verdict h3 { font-family: var(--font-dot); font-weight: 700; font-size: 20px; line-height: 1.15; }
+.verdict h3 a { text-decoration: none; }
+.verdict h3 a:hover { text-decoration: underline; }
+.verdict.is-picked .eyebrow { color: var(--positive); }
+.tag.rec { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.tag.picked { color: var(--positive); border-color: var(--positive); }
+.card.passed { opacity: 0.62; }
+td.soft { white-space: normal; min-width: 130px; }
+.view { display: inline-flex; gap: 8px; margin-inline-start: auto; }
+
+/* At a glance: one small, scaled copy of every preview */
+.glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.thumb { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 10px; text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
+.thumb:hover { border-color: var(--line-strong); }
+.thumb-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 0 4px 2px; }
+.thumb-name { font-size: 14px; font-weight: 600; }
+.thumb-text { margin: 0; height: 170px; overflow: hidden; padding: 12px; border-radius: var(--r-tile); background: var(--elevated); color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; text-align: start; }
+
+/* A mockup is laid out at its real width in a sandboxed frame, then scaled to fit the column */
+.preview { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.preview-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.preview-head .eyebrow { margin-inline-end: auto; }
+.stage { position: relative; overflow: hidden; min-width: 0; min-height: 60px; border: 1px solid var(--line-strong); border-radius: var(--r-tile); background: var(--elevated); }
+.stage iframe { position: absolute; top: 0; left: 0; border: 0; display: block; background: #ffffff; transform-origin: 0 0; }
+.thumb .stage iframe { pointer-events: none; }
+.sample { background: var(--elevated); border-radius: var(--r-tile); padding: 18px 20px; font-size: 16px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.code.snippet pre { white-space: pre; max-height: 420px; }
+
+/* The pick: say the number, or unfold and copy the prompt */
+.pick { font-size: 13.5px; color: var(--muted); }
+.pick code { color: var(--text); }
+.fold { font: inherit; color: inherit; background: none; border: 0; padding: 4px 0; margin-inline-end: auto; display: inline-flex; align-items: center; gap: 9px; cursor: pointer; text-align: start; }
+.fold::before { content: ''; flex: none; width: 6px; height: 6px; border-inline-end: 1.5px solid var(--muted); border-block-end: 1.5px solid var(--muted); transform: rotate(-45deg); transition: transform 0.15s; }
+[dir="rtl"] .fold::before { transform: rotate(45deg); }
+.fold[aria-expanded="true"]::before { transform: rotate(45deg); }
+[dir="rtl"] .fold[aria-expanded="true"]::before { transform: rotate(-45deg); }
+.code.folded .code-head { border-bottom: 0; }
+.code pre.prompt { max-height: 440px; }
+
+/* Full size: one variation at a time at the real viewport, with previous and next */
+.full { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); color: var(--text); }
+.full[open] { display: flex; flex-direction: column; }
+.full-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.full-title { margin-inline-end: auto; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.full-title b { font-family: var(--font-dot); font-weight: 700; font-size: 18px; }
+.full-body { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--elevated); }
+.full-body iframe { border: 0; display: block; width: 100%; height: 100%; background: #ffffff; }
+.full-body.phone { padding: 16px; }
+.full-body.phone iframe { width: 390px; max-width: 100%; height: min(100%, 780px); border-radius: 18px; border: 1px solid var(--line-strong); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+@media (max-width: 720px) {
+  .view { margin-inline-start: 0; }
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <span class="mark" id="mark"></span>
+    <nav id="nav" aria-label="Sections"></nav>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="aura" id="hero">
+    <span class="eyebrow" id="hero-eyebrow"></span>
+    <h1 id="hero-title"></h1>
+    <p id="hero-intro"></p>
+    <ul class="steps" id="hero-steps"></ul>
+  </header>
+
+  <section id="brief">
+    <span class="eyebrow" id="brief-eyebrow"></span>
+    <h2 id="brief-title"></h2>
+    <div class="grid" id="brief-grid"></div>
+  </section>
+
+  <section id="compare">
+    <span class="eyebrow" id="compare-eyebrow"></span>
+    <h2 id="compare-title"></h2>
+    <p class="lede" id="compare-lede"></p>
+    <div class="glance" id="glance"></div>
+    <div class="scroll" id="compare-scroll"><table id="compare-table"><thead><tr></tr></thead><tbody></tbody></table></div>
+    <div class="grid" id="verdict"></div>
+  </section>
+
+  <section id="variations">
+    <span class="eyebrow" id="variations-eyebrow"></span>
+    <h2 id="variations-title"></h2>
+    <p class="lede" id="variations-lede"></p>
+    <div class="tools" id="tools"></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<dialog class="full" id="full" aria-labelledby="full-name">
+  <div class="full-head">
+    <div class="full-title"><span class="no" id="full-no"></span><b id="full-name"></b></div>
+    <span class="view" id="full-view"></span>
+    <button class="btn" type="button" id="full-prev"></button>
+    <button class="btn" type="button" id="full-next"></button>
+    <button class="btn primary" type="button" id="full-copy"></button>
+    <button class="btn" type="button" id="full-close"></button>
+  </div>
+  <div class="full-body" id="full-body"></div>
+</dialog>
+
+<script type="application/json" id="workshop-data">{"project":"Fieldnote","title":"Fieldnote Insights Workshop","eyebrow":"Example · fictional project · 3 variations","headline":"Three ways to build Fieldnote's Insights page","intro":"**3 variations of one page.** Each has a live mockup, when it is the right choice, what it costs, and a prompt that builds it. This is a made-up example that ships with the skill: Fieldnote does not exist.","aura":"violet","axis":"what the page leads with: **one number**, **a grid of numbers**, or **sentences**. The content, the sample week and the app shell are the same in all three.","brief":{"blocks":[{"title":"What you asked for","bullets":["An analytics page that shows people **how much they write**.","Nothing was said about which numbers, which time range, or how deep it should go, so the variations take three positions on that."]},{"title":"What Fieldnote already has","bullets":["**Data:** `listNotes({ from, to })` in `src/store/notes.ts` returns each note's date, body and tags.","**Not stored:** word counts, streaks and daily totals. Every variation derives them in a new `src/insights/stats.ts`.","**Look:** the tokens in `src/ui/theme.css`. The mockups use them unchanged.","**Missing:** a chart library and a segmented control. Only variation 2 needs to build them."]},{"title":"Assumed, not asked","wide":true,"bullets":["**Words are the measure.** Not notes, not time spent: words are the only one the data supports without guessing.","**A week is Monday to Sunday** in the reader's own time zone.","**Private.** No sharing, no comparing with other people.","**No goals or targets.** The page reports; it does not coach. Say so if that is wrong, because it would change all three."],"note":"If an assumption is off, say which one and ask for another round."}]},"criteria":[{"id":"glance","label":"Answer at a glance"},{"id":"grow","label":"Room for more numbers"},{"id":"thin","label":"With little data"},{"id":"parts","label":"New parts to build"}],"recommended":{"id":"1","why":"The request was to show people how much they write. Variation 1 answers that and nothing else, and it is the cheapest to build. Its `src/insights/stats.ts` is the same foundation 2 and 3 need, so starting here closes no doors."},"variations":[{"id":"1","name":"One number","size":"S","description":"The page is a single figure, one sentence that reads it for you, and a quiet trend. It answers \"am I writing more or less than usual?\" and stops.","preview":{"type":"html","height":680,"html":"\u003cstyle>\n  .lead { display: flex; flex-direction: column; gap: 10px; margin: 26px 0 28px; }\n  .figure { font: 500 clamp(64px, 11vw, 120px)/0.95 var(--serif); letter-spacing: -0.02em; }\n  .figure small { font: 400 20px var(--sans); color: var(--soft); letter-spacing: 0; margin-left: 10px; }\n  .sentence { font-size: 18px; max-width: 46ch; }\n  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); margin-top: 28px; }\n  .fact { padding: 18px 20px 0 0; display: flex; flex-direction: column; gap: 2px; }\n  .fact b { font: 500 22px var(--serif); }\n  @media (max-width: 720px) { .facts { grid-template-columns: minmax(0, 1fr); } .fact { padding: 14px 0; border-bottom: 1px solid var(--rule); } }\n\u003c/style>\n\u003cdiv class=\"app\">\n  \u003caside class=\"side\">\n    \u003cdiv class=\"brand\">Fieldnote\u003c/div>\n    \u003ca href=\"#\">Notes\u003c/a>\u003ca href=\"#\">Tags\u003c/a>\u003ca href=\"#\">Search\u003c/a>\u003ca href=\"#\" class=\"on\">Insights\u003c/a>\u003ca href=\"#\">Settings\u003c/a>\n  \u003c/aside>\n  \u003cmain class=\"main\">\n    \u003cspan class=\"kicker\">Insights · this week\u003c/span>\n    \u003cdiv class=\"lead\">\n      \u003cdiv class=\"figure\">4,820\u003csmall>words\u003c/small>\u003c/div>\n      \u003cp class=\"sentence\">You wrote \u003cspan class=\"up\">18% more\u003c/span> than last week, across 23 notes. Tuesday was your biggest day.\u003c/p>\n    \u003c/div>\n    \u003cdiv class=\"bars\" role=\"img\" aria-label=\"Words written per week over the last 12 weeks, rising from 2,100 to 4,820\">\n      \u003ci style=\"height:44%\">\u003c/i>\u003ci style=\"height:55%\">\u003c/i>\u003ci style=\"height:39%\">\u003c/i>\u003ci style=\"height:66%\">\u003c/i>\u003ci style=\"height:58%\">\u003c/i>\u003ci style=\"height:75%\">\u003c/i>\u003ci style=\"height:64%\">\u003c/i>\u003ci style=\"height:50%\">\u003c/i>\u003ci style=\"height:81%\">\u003c/i>\u003ci style=\"height:89%\">\u003c/i>\u003ci style=\"height:85%\">\u003c/i>\u003ci style=\"height:100%\">\u003c/i>\n    \u003c/div>\n    \u003cdiv class=\"axis\">\u003cspan>12 weeks ago\u003c/span>\u003cspan>This week\u003c/span>\u003c/div>\n    \u003cdiv class=\"facts\">\n      \u003cdiv class=\"fact\">\u003cspan class=\"muted\">Streak\u003c/span>\u003cb>6 days\u003c/b>\u003c/div>\n      \u003cdiv class=\"fact\">\u003cspan class=\"muted\">Days you wrote\u003c/span>\u003cb>6 of 7\u003c/b>\u003c/div>\n      \u003cdiv class=\"fact\">\u003cspan class=\"muted\">Most written about\u003c/span>\u003cb>#meetings\u003c/b>\u003c/div>\n    \u003c/div>\n  \u003c/main>\n\u003c/div>\n"},"bestFor":["People open the page for **reassurance**, not analysis.","You want it shipped in one short session.","You are not sure yet which other numbers matter."],"tradeoffs":["**No depth.** Nothing by tag, nothing by day.","A fourth or fifth fact has nowhere to go without redesigning the page."],"scores":{"glance":{"text":"One second","tone":"good"},"grow":{"text":"Three facts, then full","tone":"bad"},"thin":{"text":"Still reads well","tone":"good"},"parts":{"text":"None","tone":"good"}},"landsIn":["src/insights/stats.ts","src/ui/screens/Insights.tsx","src/ui/routes.ts","src/ui/Sidebar.tsx"],"prompt":"Build the Insights page for Fieldnote as a single-figure layout: one large number for the words written this week, one sentence that interprets it, a twelve-week bar trend, and three quiet facts.\n\nWhy this direction: the page should answer one question in a second, \"am I writing more or less than usual?\", and stop. It was chosen over a grid of charts because most people open a page like this for reassurance, not analysis. When a small decision comes up, prefer fewer elements and a clearer sentence over more data.\n\nWhat exists:\n- src/store/notes.ts exports listNotes({ from, to }), which returns notes with id, createdAt, body and tags. Nothing stores a word count, a streak or a per-day total: all of it has to be derived.\n- src/ui/routes.ts registers screens and src/ui/Sidebar.tsx lists them. Screens live in src/ui/screens.\n- src/ui/theme.css holds the tokens the mockup uses (--paper, --ink, --soft, --rule, --accent, --accent-soft, --serif, --sans). Use the tokens, never literal values.\n- There is no chart library in the project and this page does not need one: the bars are plain elements with a height.\n\nBuild:\n1. src/insights/stats.ts, as pure functions with tests in src/insights/__tests__:\n   - wordCount(body): trim, then split on whitespace; an empty body is 0.\n   - weeklyWords(notes, now, weeks = 12): totals per calendar week, Monday to Sunday in the user's local time zone, oldest first, with empty weeks as 0.\n   - changeVsLastWeek(weekly): (this - last) / last, or null when last week is 0. Check value: 4,820 against 4,080 gives 0.18.\n   - streak(notes, now): consecutive days with at least one note, counting back from today, or from yesterday when nothing has been written yet today.\n   - topTag(notes): the tag with the most words this week; a tie goes to the tag used most recently; null when no note has a tag.\n2. src/ui/screens/Insights.tsx, top to bottom:\n   - a small uppercase label, \"Insights · this week\";\n   - the figure: this week's words in the serif face, very large (clamp between 64px and 120px), with the unit beside it in small sans;\n   - one sentence built from the data, in this order: change against last week, number of notes, biggest day;\n   - the twelve-week bars, the current week in --accent and the rest in --accent-soft, with a text alternative that states the range;\n   - under a hairline, a row of three facts: streak, days written out of 7, most-written-about tag.\n3. Register the route in src/ui/routes.ts and add \"Insights\" to src/ui/Sidebar.tsx after Search.\n\nStates the mockup does not show:\n- No notes at all: replace the page with one line, \"Write your first note and this page will start counting\", and a link to a new note.\n- Fewer than two weeks of history: show the figure and the facts, and leave out the comparison and the bars instead of drawing a single bar.\n- Last week was 0: say \"You wrote nothing last week\" in place of a percentage.\n- No tagged notes: leave the third fact out, so the row has two columns.\n- Under 720px wide, the facts stack into one column with hairlines between them.\n\nOut of scope: switching the date range, per-tag breakdowns, a day-by-day view, exporting, and any chart beyond the weekly bars. If one seems needed, list it at the end instead of building it.\n"},{"id":"2","name":"Dashboard grid","size":"M","description":"Four headline tiles, a chart of words per period, a breakdown by tag and a day-by-day strip, with a Week, Month and Year switch. The familiar shape, and the one with the most room.","preview":{"type":"html","height":800,"html":"\u003cstyle>\n  .head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }\n  .range { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; background: var(--card); }\n  .range span { padding: 5px 13px; border-radius: 999px; font-size: 13px; color: var(--soft); }\n  .range .on { background: var(--ink); color: var(--paper); }\n  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }\n  .kpi { display: flex; flex-direction: column; gap: 4px; }\n  .kpi b { font: 500 28px/1.1 var(--serif); }\n  .kpi small { font-size: 12.5px; }\n  .grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; margin-top: 12px; }\n  .panel h3 { font: 600 14px var(--sans); margin-bottom: 16px; }\n  .tags { display: flex; flex-direction: column; gap: 12px; }\n  .tag-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) 46px; align-items: center; gap: 10px; font-size: 13.5px; }\n  .track { height: 8px; background: var(--quiet); border-radius: 999px; overflow: hidden; }\n  .track i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }\n  .tag-row span:last-child { text-align: right; color: var(--soft); font-variant-numeric: tabular-nums; }\n  .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }\n  .day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--soft); }\n  .day i { width: 100%; height: 44px; border-radius: 8px; background: var(--accent); }\n  .wide { grid-column: 1 / -1; }\n  @media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid { grid-template-columns: minmax(0, 1fr); } }\n\u003c/style>\n\u003cdiv class=\"app\">\n  \u003caside class=\"side\">\n    \u003cdiv class=\"brand\">Fieldnote\u003c/div>\n    \u003ca href=\"#\">Notes\u003c/a>\u003ca href=\"#\">Tags\u003c/a>\u003ca href=\"#\">Search\u003c/a>\u003ca href=\"#\" class=\"on\">Insights\u003c/a>\u003ca href=\"#\">Settings\u003c/a>\n  \u003c/aside>\n  \u003cmain class=\"main\">\n    \u003cdiv class=\"head\">\n      \u003ch1 class=\"title\">Insights\u003c/h1>\n      \u003cdiv class=\"range\" role=\"group\" aria-label=\"Date range\">\u003cspan class=\"on\">Week\u003c/span>\u003cspan>Month\u003c/span>\u003cspan>Year\u003c/span>\u003c/div>\n    \u003c/div>\n    \u003cdiv class=\"kpis\">\n      \u003cdiv class=\"panel kpi\">\u003cspan class=\"muted\">Words\u003c/span>\u003cb>4,820\u003c/b>\u003csmall class=\"up\">+18% vs last week\u003c/small>\u003c/div>\n      \u003cdiv class=\"panel kpi\">\u003cspan class=\"muted\">Notes\u003c/span>\u003cb>23\u003c/b>\u003csmall class=\"muted\">4 a day when you wrote\u003c/small>\u003c/div>\n      \u003cdiv class=\"panel kpi\">\u003cspan class=\"muted\">Streak\u003c/span>\u003cb>6 days\u003c/b>\u003csmall class=\"muted\">Best: 14\u003c/small>\u003c/div>\n      \u003cdiv class=\"panel kpi\">\u003cspan class=\"muted\">Days you wrote\u003c/span>\u003cb>6 of 7\u003c/b>\u003csmall class=\"muted\">Missed Monday\u003c/small>\u003c/div>\n    \u003c/div>\n    \u003cdiv class=\"grid\">\n      \u003cdiv class=\"panel\">\n        \u003ch3>Words per week\u003c/h3>\n        \u003cdiv class=\"bars\" role=\"img\" aria-label=\"Words written per week over the last 12 weeks, rising from 2,100 to 4,820\">\n          \u003ci style=\"height:44%\">\u003c/i>\u003ci style=\"height:55%\">\u003c/i>\u003ci style=\"height:39%\">\u003c/i>\u003ci style=\"height:66%\">\u003c/i>\u003ci style=\"height:58%\">\u003c/i>\u003ci style=\"height:75%\">\u003c/i>\u003ci style=\"height:64%\">\u003c/i>\u003ci style=\"height:50%\">\u003c/i>\u003ci style=\"height:81%\">\u003c/i>\u003ci style=\"height:89%\">\u003c/i>\u003ci style=\"height:85%\">\u003c/i>\u003ci style=\"height:100%\">\u003c/i>\n        \u003c/div>\n        \u003cdiv class=\"axis\">\u003cspan>12 weeks ago\u003c/span>\u003cspan>This week\u003c/span>\u003c/div>\n      \u003c/div>\n      \u003cdiv class=\"panel\">\n        \u003ch3>By tag\u003c/h3>\n        \u003cdiv class=\"tags\">\n          \u003cdiv class=\"tag-row\">\u003cspan>#meetings\u003c/span>\u003cdiv class=\"track\">\u003ci style=\"width:40%\">\u003c/i>\u003c/div>\u003cspan>1,940\u003c/span>\u003c/div>\n          \u003cdiv class=\"tag-row\">\u003cspan>#ideas\u003c/span>\u003cdiv class=\"track\">\u003ci style=\"width:25%\">\u003c/i>\u003c/div>\u003cspan>1,210\u003c/span>\u003c/div>\n          \u003cdiv class=\"tag-row\">\u003cspan>#journal\u003c/span>\u003cdiv class=\"track\">\u003ci style=\"width:20%\">\u003c/i>\u003c/div>\u003cspan>960\u003c/span>\u003c/div>\n          \u003cdiv class=\"tag-row\">\u003cspan>Other\u003c/span>\u003cdiv class=\"track\">\u003ci style=\"width:15%\">\u003c/i>\u003c/div>\u003cspan>710\u003c/span>\u003c/div>\n        \u003c/div>\n      \u003c/div>\n      \u003cdiv class=\"panel wide\">\n        \u003ch3>This week, day by day\u003c/h3>\n        \u003cdiv class=\"week\">\n          \u003cdiv class=\"day\">\u003ci style=\"background:var(--quiet)\">\u003c/i>Mon\u003c/div>\n          \u003cdiv class=\"day\">\u003ci style=\"opacity:1\">\u003c/i>Tue\u003c/div>\n          \u003cdiv class=\"day\">\u003ci style=\"opacity:0.71\">\u003c/i>Wed\u003c/div>\n          \u003cdiv class=\"day\">\u003ci style=\"opacity:0.44\">\u003c/i>Thu\u003c/div>\n          \u003cdiv class=\"day\">\u003ci style=\"opacity:0.73\">\u003c/i>Fri\u003c/div>\n          \u003cdiv class=\"day\">\u003ci style=\"opacity:0.5\">\u003c/i>Sat\u003c/div>\n          \u003cdiv class=\"day\">\u003ci style=\"opacity:0.51\">\u003c/i>Sun\u003c/div>\n        \u003c/div>\n      \u003c/div>\n    \u003c/div>\n  \u003c/main>\n\u003c/div>\n"},"bestFor":["People ask for **several different numbers**, not one.","You expect to keep adding metrics.","A date-range switch matters from day one."],"tradeoffs":["**Nothing leads.** The reader has to work out what the page is saying.","A new user sees mostly empty panels for their first two weeks.","Three components to build and keep: tile, switch, bars."],"scores":{"glance":{"text":"Scan four tiles","tone":"warn"},"grow":{"text":"Add a panel","tone":"good"},"thin":{"text":"Mostly empty","tone":"bad"},"parts":{"text":"3 components","tone":"warn"}},"landsIn":["src/insights/stats.ts","src/ui/screens/Insights.tsx","src/ui/components/StatTile.tsx","src/ui/components/SegmentedControl.tsx","src/ui/components/BarSeries.tsx","src/ui/routes.ts","src/ui/Sidebar.tsx"],"prompt":"Build the Insights page for Fieldnote as a dashboard: a Week / Month / Year switch, four headline tiles, a bar chart of words per period, a breakdown by tag and a day-by-day strip.\n\nWhy this direction: it was chosen because people want several different numbers, and a grid gives each one a home and leaves room to add more later. The risk of a grid is that nothing leads. Treat the four tiles as the way in and give everything below them less visual weight than the tiles have.\n\nWhat exists:\n- src/store/notes.ts exports listNotes({ from, to }), which returns notes with id, createdAt, body and tags. Nothing stores a word count, a streak or a per-day total: all of it has to be derived.\n- src/ui/routes.ts registers screens and src/ui/Sidebar.tsx lists them. Screens live in src/ui/screens, shared components in src/ui/components.\n- src/ui/theme.css holds the tokens the mockup uses (--paper, --card, --ink, --soft, --rule, --accent, --accent-soft, --quiet, --radius). Use the tokens, never literal values.\n- There is no chart library and no segmented control in the project. Both are small enough to build here; do not add a dependency.\n\nBuild:\n1. src/insights/stats.ts, as pure functions with tests in src/insights/__tests__. A range is \"week\", \"month\" or \"year\"; weeks run Monday to Sunday in the user's local time zone.\n   - wordCount(body): trim, then split on whitespace; an empty body is 0.\n   - totals(notes, range, now): words, notes, days with at least one note, and days in the range so far.\n   - series(notes, range, now): the last 12 weeks, 12 months or 5 years, oldest first, with empty periods as 0.\n   - change(current, previous): (current - previous) / previous, or null when previous is 0. Check value: 4,820 against 4,080 gives 0.18.\n   - streak(notes, now) and bestStreak(notes): consecutive days with at least one note.\n   - byTag(notes, range, now): words per tag, largest first, the top three and the rest summed as \"Other\". Split a note's words evenly between its tags, and count untagged notes under \"Other\", so the rows always add up to the total. Check: a 300-word note tagged ideas and journal adds 150 to each.\n   - byDay(notes, now): words for each day of the current week.\n2. New components in src/ui/components: StatTile (label, value, one supporting line), SegmentedControl (a radio group: arrow keys move, the choice is announced), BarSeries (values in, bars out, last bar emphasised, a text alternative that states the range).\n3. src/ui/screens/Insights.tsx:\n   - header row: the title \"Insights\" and the range switch, Week by default. Keep the choice in the URL (?range=month) so a reload does not lose it;\n   - four tiles in a row: Words with the change against the previous period; Notes with the average per day written; Streak with the best streak; Days you wrote, as n of the days so far, naming the missed day when exactly one was missed;\n   - two panels in a 3:2 split: words per period, and By tag (name, a track filled to the tag's share, the number);\n   - one full-width panel, \"This week, day by day\": seven cells whose strength follows each day's share of the busiest day. A day with no writing uses --quiet, not a faint accent, so \"nothing\" never looks like \"a little\". Show this panel in the Week range only.\n4. Register the route in src/ui/routes.ts and add \"Insights\" to src/ui/Sidebar.tsx after Search.\n\nStates the mockup does not show:\n- No notes at all: one line, \"Write your first note and this page will start counting\", and a link to a new note, in place of the grid.\n- Nothing to compare with: the supporting line under Words is left empty, not \"+0%\".\n- Fewer than two periods of history: hide the bar panel and let By tag take the full width.\n- No tagged notes: hide By tag.\n- Under 720px wide: tiles two by two, panels in one column.\n\nOut of scope: custom date ranges, comparing two ranges, exporting, drilling down into a tag or a day, and goals or targets. If one seems needed, list it at the end instead of building it.\n"},{"id":"3","name":"Weekly letter","size":"M","description":"The numbers arrive as three short paragraphs, written from the data, with earlier weeks folded underneath. Analytics for people who would rather read than chart.","preview":{"type":"html","height":820,"html":"\u003cstyle>\n  .letter { max-width: 620px; display: flex; flex-direction: column; gap: 22px; margin-top: 18px; }\n  .letter p { font: 400 19px/1.6 var(--serif); }\n  .letter .up { font-weight: 500; }\n  .inline { display: inline-flex; align-items: flex-end; gap: 2px; height: 18px; width: 64px; vertical-align: -2px; margin: 0 4px; }\n  .inline i { flex: 1; background: var(--accent); opacity: 0.4; border-radius: 1px; }\n  .inline i:last-child { opacity: 1; }\n  .days { display: flex; gap: 6px; }\n  .days span { flex: 1; text-align: center; font: 500 12px var(--sans); padding: 7px 0; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }\n  .days .off { background: var(--quiet); color: var(--soft); }\n  .days .top { background: var(--accent); color: #ffffff; }\n  .past { margin-top: 34px; border-top: 1px solid var(--rule); max-width: 620px; }\n  .past details { border-bottom: 1px solid var(--rule); }\n  .past summary { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; font-size: 14.5px; }\n  .past summary::-webkit-details-marker { display: none; }\n  .past summary span:last-child { color: var(--soft); font-variant-numeric: tabular-nums; }\n  .past details p { font: 400 16px/1.55 var(--serif); padding: 0 0 16px; color: var(--soft); }\n  @media (max-width: 720px) { .letter p { font-size: 17px; } }\n\u003c/style>\n\u003cdiv class=\"app\">\n  \u003caside class=\"side\">\n    \u003cdiv class=\"brand\">Fieldnote\u003c/div>\n    \u003ca href=\"#\">Notes\u003c/a>\u003ca href=\"#\">Tags\u003c/a>\u003ca href=\"#\">Search\u003c/a>\u003ca href=\"#\" class=\"on\">Insights\u003c/a>\u003ca href=\"#\">Settings\u003c/a>\n  \u003c/aside>\n  \u003cmain class=\"main\">\n    \u003cspan class=\"kicker\">Insights · week of 5 October\u003c/span>\n    \u003ch1 class=\"title\">Your week in writing\u003c/h1>\n    \u003cdiv class=\"letter\">\n      \u003cp>You wrote \u003cb>4,820 words\u003c/b> in 23 notes, \u003cspan class=\"up\">18% more\u003c/span> than the week before and your most in twelve weeks \u003cspan class=\"inline\" role=\"img\" aria-label=\"Twelve-week trend, rising\">\u003ci style=\"height:44%\">\u003c/i>\u003ci style=\"height:55%\">\u003c/i>\u003ci style=\"height:39%\">\u003c/i>\u003ci style=\"height:66%\">\u003c/i>\u003ci style=\"height:58%\">\u003c/i>\u003ci style=\"height:75%\">\u003c/i>\u003ci style=\"height:64%\">\u003c/i>\u003ci style=\"height:50%\">\u003c/i>\u003ci style=\"height:81%\">\u003c/i>\u003ci style=\"height:89%\">\u003c/i>\u003ci style=\"height:85%\">\u003c/i>\u003ci style=\"height:100%\">\u003c/i>\u003c/span>.\u003c/p>\n      \u003cp>Most of it happened on Tuesday, when you wrote 1,240 words. Monday was the only day off, which puts your streak at six days.\u003c/p>\n      \u003cdiv class=\"days\" role=\"img\" aria-label=\"Days written this week: every day except Monday, most on Tuesday\">\n        \u003cspan class=\"off\">M\u003c/span>\u003cspan class=\"top\">T\u003c/span>\u003cspan>W\u003c/span>\u003cspan>T\u003c/span>\u003cspan>F\u003c/span>\u003cspan>S\u003c/span>\u003cspan>S\u003c/span>\n      \u003c/div>\n      \u003cp>Four in every ten words went to \u003cb>#meetings\u003c/b>. \u003cb>#ideas\u003c/b> had a quarter, and \u003cb>#journal\u003c/b> a fifth.\u003c/p>\n    \u003c/div>\n    \u003cdiv class=\"past\">\n      \u003cdetails>\u003csummary>\u003cspan>Week of 28 September\u003c/span>\u003cspan>4,080 words\u003c/span>\u003c/summary>\u003cp>A steady week: 19 notes over six days, led by #journal.\u003c/p>\u003c/details>\n      \u003cdetails>\u003csummary>\u003cspan>Week of 21 September\u003c/span>\u003cspan>4,300 words\u003c/span>\u003c/summary>\u003cp>Your best week until this one, with a 1,400-word Thursday.\u003c/p>\u003c/details>\n      \u003cdetails>\u003csummary>\u003cspan>Week of 14 September\u003c/span>\u003cspan>3,900 words\u003c/span>\u003c/summary>\u003cp>Five days of writing, most of it in #meetings.\u003c/p>\u003c/details>\n    \u003c/div>\n  \u003c/main>\n\u003c/div>\n"},"bestFor":["Fieldnote's readers are **writers**: prose suits them better than tiles.","You want the page to feel like part of the product, not an admin screen.","Looking back week by week matters more than switching ranges."],"tradeoffs":["**Slowest to scan.** The answer is inside a sentence.","Every sentence needs rules, edge cases and a translation.","Each new number is a new sentence to write and test."],"scores":{"glance":{"text":"Read a paragraph","tone":"warn"},"grow":{"text":"One sentence each","tone":"warn"},"thin":{"text":"Says less, stays true","tone":"good"},"parts":{"text":"Sentence rules and tests","tone":"warn"}},"landsIn":["src/insights/stats.ts","src/insights/letter.ts","src/ui/screens/Insights.tsx","src/ui/strings.ts","src/ui/routes.ts","src/ui/Sidebar.tsx"],"prompt":"Build the Insights page for Fieldnote as a weekly letter: three short paragraphs written from the week's numbers, with a small inline trend and a seven-day strip, and earlier weeks folded underneath.\n\nWhy this direction: it was chosen because bare numbers say little to the people this page is for, and a sentence that interprets them says more. The writing is the feature. Every sentence must be true of the data it was built from, and a sentence with nothing to say is left out, never padded.\n\nWhat exists:\n- src/store/notes.ts exports listNotes({ from, to }), which returns notes with id, createdAt, body and tags. Nothing stores a word count, a streak or a per-day total: all of it has to be derived.\n- src/ui/routes.ts registers screens and src/ui/Sidebar.tsx lists them. Screens live in src/ui/screens.\n- src/ui/strings.ts is the string table; the app is translated. Build each sentence from a whole template, one per case, and never by joining fragments, because word order differs between languages.\n- src/ui/theme.css holds the tokens the mockup uses (--paper, --ink, --soft, --rule, --accent, --accent-soft, --quiet, --serif, --sans). Use the tokens, never literal values.\n\nBuild:\n1. src/insights/stats.ts, as pure functions with tests in src/insights/__tests__. Weeks run Monday to Sunday in the user's local time zone.\n   - wordCount(body): trim, then split on whitespace; an empty body is 0.\n   - weekStats(notes, weekStart): words, notes, words per day, busiest day, days off, and share of words per tag (split a note's words evenly between its tags).\n   - weeklyWords(notes, now, weeks = 12) and streak(notes, now).\n2. src/insights/letter.ts: weekLetter(stats, history) returns a list of paragraphs, each a list of typed parts (text, strong, positive, trend), so the screen renders them without parsing strings.\n   - Paragraph 1: words and notes, then the change against the week before as \"18% more\" or \"12% less\", or \"about the same\" inside 3 percent either way. That 3 is a tuning choice: name it as a constant. Add \"your most in twelve weeks\" only when it is true and twelve weeks of history exist.\n   - Paragraph 2: the busiest day and its words, the days off, and the streak. With no day off, say \"You wrote every day\".\n   - Paragraph 3: tag shares as everyday fractions, using the nearest of: a tenth, a fifth, a quarter, a third, four in every ten, half, two thirds, three quarters, almost all. Check values: 1,940 of 4,820 is \"four in every ten\", 1,210 is \"a quarter\", 960 is \"a fifth\". Leave the paragraph out when no note has a tag.\n   - Test with a fixed week and assert the exact paragraphs.\n3. src/ui/screens/Insights.tsx:\n   - a small uppercase label with the week's start date, then the serif title \"Your week in writing\";\n   - the letter in one column, 620px at most, serif at 19px with generous line height;\n   - the trend sits inside paragraph 1: twelve bars in about 64 by 18px, with a text alternative;\n   - the day strip sits after paragraph 2: seven cells, the busiest filled with --accent, days off in --quiet;\n   - under a hairline, the eight weeks before this one as native details elements: the summary shows the week and its words, the body shows that week's first paragraph only.\n4. Register the route in src/ui/routes.ts and add \"Insights\" to src/ui/Sidebar.tsx after Search.\n\nStates the mockup does not show:\n- No notes at all: one line, \"Write your first note and this page will start counting\", and a link to a new note.\n- The first week of use: leave out the comparison and the trend.\n- A week with no words: \"You did not write this week. Your last note was on\" followed by the date, and nothing else.\n- Under 720px wide: the letter at 17px.\n\nOut of scope: switching the date range, charts beyond the inline trend and the day strip, sending the letter as an email or a notification, sharing it, and writing the text with a language model: the sentences are templates. If one seems needed, list it at the end instead of building it.\n"}],"footer":"Example page shipped with the workshop-me skill. Fieldnote is fictional, and so are its files and its numbers.","previewCss":"/* Fieldnote's own tokens and app shell, shared by every mockup so the variations differ in design, not in paint.\n   In a real run these values are read from the host project (here: src/ui/theme.css). */\n@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap');\n:root {\n  --paper: #faf8f3; --card: #ffffff; --ink: #1c1b19; --soft: #6b6861; --rule: #e7e3da;\n  --accent: #2f6f5e; --accent-soft: #dcebe5; --quiet: #efece4; --radius: 12px;\n  --serif: 'Newsreader', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;\n}\nbody { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }\nh1, h2, h3, p { margin: 0; }\n.app { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100vh; }\n.side { border-right: 1px solid var(--rule); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; }\n.brand { font: 500 20px var(--serif); padding: 0 10px 18px; }\n.side a { color: var(--soft); text-decoration: none; padding: 7px 10px; border-radius: 8px; font-size: 14px; }\n.side a.on { background: var(--quiet); color: var(--ink); font-weight: 500; }\n.main { padding: 36px 44px 56px; max-width: 1040px; width: 100%; }\n.kicker { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); }\n.title { font: 500 30px/1.15 var(--serif); }\n.muted { color: var(--soft); }\n.up { color: var(--accent); font-weight: 600; }\n.panel { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px; }\n/* Twelve weeks of words written, as bars. The last bar is the current week. */\n.bars { display: flex; align-items: flex-end; gap: 6px; height: 140px; }\n.bars i { flex: 1; min-width: 0; background: var(--accent-soft); border-radius: 4px 4px 0 0; }\n.bars i:last-child { background: var(--accent); }\n.axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--soft); margin-top: 8px; }\n@media (max-width: 720px) {\n  .app { grid-template-columns: minmax(0, 1fr); }\n  .side { display: none; }\n  .main { padding: 22px 16px 40px; }\n  .title { font-size: 25px; }\n}\n","groundRules":"Ground rules for this repo\n- Fieldnote is a TypeScript app. Storage and migrations live in src/store, screens in src/ui/screens, shared components in src/ui/components, design tokens in src/ui/theme.css. Read the files named above before designing; if anything in this prompt disagrees with the code, the code wins: say what differed.\n- The mockup at the end is a picture of the intended result, drawn with sample data. Rebuild it with the project's components and tokens. Where the mockup and this prompt disagree, the prompt wins.\n- Keep calculations as pure functions with named constants, separate from the screens, and test them.\n- Show nothing instead of a made-up or misleading number when there is too little data.\n- Everything must work offline: no network calls, and no new dependency without saying why.\n- Charts and figures need a text alternative; controls need keyboard support and a visible focus state.\n- Match the surrounding code's style and naming.\n- Finish by running the type check, the linter and the tests, then open the page at desktop and phone width and say what you saw. Report exactly what you ran and what passed.\n- Stay inside the scope above. List follow-ups at the end; do not build them.\n"}</script>
+<script>
+(function () {
+  var DATA = JSON.parse(document.getElementById('workshop-data').textContent);
+  var project = DATA.project || 'Project';
+
+  // Every fixed string on the page. A page in another language overrides these through DATA.labels.
+  var L = Object.assign({
+    navBrief: 'Brief', navCompare: 'Compare', navVariations: 'Variations',
+    briefEyebrow: 'Part 1 · what this is built on', briefTitle: 'The brief',
+    compareEyebrow: 'Part 2 · side by side', compareTitle: 'Compare', axis: 'What differs',
+    variationsEyebrow: 'Part 3 · pick one', variationsTitle: 'Variations',
+    variationsLede: 'To build one, say its number in the chat, or copy its prompt into a new session. Each prompt stands alone: it names the real files, describes the layout and its states, and ends with the project\'s ground rules and the mockup.',
+    all: 'All', desktop: 'Desktop', phone: 'Phone',
+    recommended: 'Recommended', picked: 'Picked',
+    bestFor: 'Best when', tradeoffs: 'Trade-offs', lands: 'Lands in', basedOn: 'Builds on',
+    preview: 'Preview', previewTitle: 'Preview of variation {id}: {name}',
+    open: 'Open full size', close: 'Close', prev: 'Previous', next: 'Next',
+    pick: 'Say `variation {id}` in the chat to build it here, or copy the prompt into a new session.',
+    prompt: 'Prompt · variation {id}', copy: 'Copy prompt', copied: 'Copied', selected: 'Selected · press copy',
+    mockupHead: 'Reference mockup for variation {id}\nStatic HTML and CSS with sample data. Match its layout, hierarchy and states using this project\'s own components and tokens. Do not paste this markup into the codebase, and do not treat its numbers or wording as real.',
+    colNo: '#', colVariation: 'Variation', colSize: 'Effort',
+    sizeS: 'S · under half a session', sizeM: 'M · one session', sizeL: 'L · a full session or more',
+    steps: ['1 · Compare the previews', '2 · Say "variation 2" in the chat', '3 · Or copy its prompt', '4 · Mix two, or ask for another round']
+  }, DATA.labels || {});
+
+  if (DATA.lang) document.documentElement.lang = DATA.lang;
+  if (DATA.dir) document.documentElement.dir = DATA.dir;
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; }
+  function byId(id) { return document.getElementById(id); }
+  // Inline formatting in content strings: **bold** and `code`. Everything else is plain text.
+  function rich(node, text) {
+    String(text === undefined || text === null ? '' : text).split(/(\*\*[^*]+\*\*|`[^`]+`)/).forEach(function (part) {
+      if (!part) return;
+      if (part.length > 4 && part.slice(0, 2) === '**' && part.slice(-2) === '**') node.appendChild(el('b', '', part.slice(2, -2)));
+      else if (part.length > 2 && part[0] === '`' && part[part.length - 1] === '`') node.appendChild(el('code', '', part.slice(1, -1)));
+      else node.appendChild(document.createTextNode(part));
+    });
+    return node;
+  }
+  function list(items) { var ul = el('ul'); (items || []).forEach(function (t) { ul.appendChild(rich(el('li'), t)); }); return ul; }
+  function fill(str, vars) { return String(str).replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? vars[k] : m; }); }
+  function button(cls, label, onClick) { var b = el('button', cls, label); b.type = 'button'; b.addEventListener('click', onClick); return b; }
+
+  // Bar and hero
+  byId('mark').textContent = project;
+  [['#brief', L.navBrief], ['#compare', L.navCompare], ['#variations', L.navVariations]].forEach(function (n) {
+    var a = el('a', '', n[1]); a.href = n[0]; byId('nav').appendChild(a);
+  });
+  if (DATA.aura) byId('hero').classList.add('aura-' + DATA.aura);
+  byId('hero-eyebrow').textContent = DATA.eyebrow || '';
+  byId('hero-title').textContent = DATA.headline || '';
+  rich(byId('hero-intro'), DATA.intro || '');
+  (L.steps || []).forEach(function (s) { byId('hero-steps').appendChild(el('li', '', s)); });
+
+  // Brief
+  byId('brief-eyebrow').textContent = L.briefEyebrow;
+  byId('brief-title').textContent = L.briefTitle;
+  ((DATA.brief && DATA.brief.blocks) || []).forEach(function (b) {
+    var block = el('div', 'block' + (b.wide ? ' wide' : ''));
+    if (b.title) block.appendChild(el('h3', '', b.title));
+    if (b.text) block.appendChild(rich(el('p', 'note'), b.text));
+    if (b.bullets && b.bullets.length) block.appendChild(list(b.bullets));
+    if (b.table) {
+      var scroll = el('div', 'scroll'), table = el('table'), thead = el('thead'), hr = el('tr'), tbody = el('tbody');
+      (b.table.columns || []).forEach(function (c) { hr.appendChild(el('th', '', c)); });
+      (b.table.rows || []).forEach(function (row) {
+        var tr = el('tr');
+        row.forEach(function (cell) {
+          var isObj = cell && typeof cell === 'object';
+          tr.appendChild(el('td', isObj && cell.tone ? cell.tone : '', isObj ? cell.text : cell));
+        });
+        tbody.appendChild(tr);
+      });
+      thead.appendChild(hr); table.appendChild(thead); table.appendChild(tbody); scroll.appendChild(table); block.appendChild(scroll);
+    }
+    if (b.note) block.appendChild(rich(el('p', 'note'), b.note));
+    byId('brief-grid').appendChild(block);
+  });
+
+  // Sizes: effort to build, on the cool-to-hot ramp
+  var SIZE = { S: [1, 'var(--e1)', L.sizeS], M: [2, 'var(--e3)', L.sizeM], L: [3, 'var(--e5)', L.sizeL] };
+  function sizeMeter(size, short) {
+    var s = SIZE[size] || SIZE.M, wrap = el('span', 'size'), dots = el('span', 'dots');
+    for (var i = 0; i < 3; i++) { var d = el('i'); if (i < s[0]) d.style.background = s[1]; dots.appendChild(d); }
+    wrap.appendChild(dots); wrap.appendChild(el('span', '', short ? size : s[2]));
+    return wrap;
+  }
+
+  var variations = DATA.variations || [], rounds = DATA.rounds || [], criteria = DATA.criteria || [];
+  var roundById = {}; rounds.forEach(function (r) { roundById[r.id] = r; });
+  var varById = {}; variations.forEach(function (v) { varById[v.id] = v; });
+  var pickedId = DATA.picked && DATA.picked.id, recId = DATA.recommended && DATA.recommended.id;
+  var ground = DATA.groundRules ? '\n\n' + String(DATA.groundRules).trim() : '';
+  var anySize = variations.some(function (v) { return v.size; });
+  function isHtml(v) { return !!(v.preview && v.preview.type === 'html'); }
+  function badge(parent, v) {
+    if (pickedId === v.id) parent.appendChild(el('span', 'tag picked', L.picked));
+    else if (!pickedId && recId === v.id) parent.appendChild(el('span', 'tag rec', L.recommended));
+  }
+
+  // What gets copied: the prompt, the ground rules, then the mockup the user was looking at when they chose
+  function promptText(v) {
+    var t = String(v.prompt || '').trim() + ground;
+    if (isHtml(v) && DATA.appendMockup !== false) {
+      t += '\n\n' + fill(L.mockupHead, { id: v.id }) + '\n\n';
+      var css = [DATA.previewCss, v.preview.css].filter(Boolean).map(function (c) { return String(c).trim(); }).join('\n\n');
+      if (css) t += '<style>\n' + css + '\n</style>\n\n';
+      t += String(v.preview.html || '').trim();
+    }
+    return t;
+  }
+  function flash(btn, text) { var old = btn.dataset.label || btn.textContent; btn.dataset.label = old; btn.textContent = text; setTimeout(function () { btn.textContent = old; }, 1800); }
+  // reveal() must return a visible element holding the text, for browsers that refuse clipboard access
+  function copyText(text, btn, reveal) {
+    function select() {
+      var pre = reveal(), r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      flash(btn, L.selected);
+    }
+    try { navigator.clipboard.writeText(text).then(function () { flash(btn, L.copied); }, select); }
+    catch (e) { select(); }
+  }
+
+  // Mockups. A fragment is wrapped in a minimal document with the shared styles; a full document is used as it is.
+  function srcdoc(v) {
+    var p = v.preview, html = String(p.html || '');
+    if (/<!doctype|<html[\s>]/i.test(html)) return html;
+    return '<!doctype html><html lang="' + (DATA.lang || 'en') + '"' + (DATA.dir ? ' dir="' + DATA.dir + '"' : '') + '><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<style>*{box-sizing:border-box}html,body{margin:0}body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}</style>' +
+      (DATA.previewCss ? '<style>' + DATA.previewCss + '</style>' : '') +
+      (p.css ? '<style>' + p.css + '</style>' : '') +
+      '</head><body>' + html + '</body></html>';
+  }
+  function frame(v, quiet) {
+    var f = document.createElement('iframe');
+    f.setAttribute('sandbox', '');  // static mockups: no scripts, no forms, no reach into this page
+    f.title = fill(L.previewTitle, { id: v.id, name: v.name });
+    if (quiet) { f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.setAttribute('loading', 'lazy'); }
+    f.srcdoc = srcdoc(v);
+    return f;
+  }
+  // On a narrow screen a scaled-down desktop layout is unreadable, so start on the phone layout there
+  var mode = window.matchMedia && window.matchMedia('(max-width: 720px)').matches ? 'phone' : 'desktop', stages = [], modeChips = [];
+  function dims(v) {
+    var p = v.preview;
+    return mode === 'phone' ? [390, p.phoneHeight || 760] : [p.width || 1280, p.height || 800];
+  }
+  function fit(s) {
+    var avail = s.stage.clientWidth;
+    if (!avail || (avail === s.w && mode === s.mode)) return;
+    s.w = avail; s.mode = mode;
+    var d = dims(s.v), k = Math.min(1, avail / d[0]);
+    if (s.thumb) k = Math.min(k, 200 / d[1]);
+    s.frame.style.width = d[0] + 'px'; s.frame.style.height = d[1] + 'px';
+    s.frame.style.transform = 'scale(' + k + ')';
+    s.frame.style.left = Math.max(0, Math.round((avail - d[0] * k) / 2)) + 'px';
+    s.frame.style.borderRadius = mode === 'phone' ? '18px' : '0';
+    s.stage.style.height = Math.round(d[1] * k) + 'px';
+  }
+  function fitAll() { stages.forEach(fit); }
+  function addStage(v, thumb) {
+    var stage = el('div', 'stage'), s = { stage: stage, frame: frame(v, thumb), v: v, thumb: thumb };
+    stage.appendChild(s.frame); stages.push(s);
+    if (window.ResizeObserver) new ResizeObserver(function () { fit(s); }).observe(stage);
+    return stage;
+  }
+  window.addEventListener('resize', fitAll);
+  function viewChips(parent) {
+    ['desktop', 'phone'].forEach(function (m) {
+      var c = button('chip', L[m], function () { setMode(m); });
+      c.setAttribute('aria-pressed', String(m === mode)); modeChips.push([m, c]); parent.appendChild(c);
+    });
+  }
+  function setMode(m) {
+    mode = m;
+    modeChips.forEach(function (x) { x[1].setAttribute('aria-pressed', String(x[0] === m)); });
+    byId('full-body').classList.toggle('phone', m === 'phone');
+    fitAll();
+  }
+
+  // Full size
+  var full = byId('full'), fullBody = byId('full-body'), current = null, activeRound = 'all';
+  function inRound(v) { return activeRound === 'all' || v.round === activeRound; }
+  function mockups() { return variations.filter(function (v) { return isHtml(v) && inRound(v); }); }
+  function show(v) {
+    current = v;
+    byId('full-no').textContent = v.id; byId('full-name').textContent = v.name;
+    fullBody.textContent = ''; fullBody.appendChild(frame(v, false));
+    byId('full-prev').disabled = byId('full-next').disabled = mockups().length < 2;
+  }
+  function openFull(v) { show(v); if (full.showModal) full.showModal(); else full.setAttribute('open', ''); }
+  function closeFull() { if (full.close) full.close(); else full.removeAttribute('open'); }
+  function step(n) { var all = mockups(), i = all.indexOf(current); if (all.length) show(all[(i + n + all.length) % all.length]); }
+  byId('full-prev').textContent = L.prev; byId('full-next').textContent = L.next;
+  byId('full-close').textContent = L.close; byId('full-copy').textContent = L.copy;
+  byId('full-prev').addEventListener('click', function () { step(-1); });
+  byId('full-next').addEventListener('click', function () { step(1); });
+  byId('full-close').addEventListener('click', closeFull);
+  full.addEventListener('close', function () { fullBody.textContent = ''; });
+  full.addEventListener('keydown', function (e) {
+    var back = document.documentElement.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft', fwd = back === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+    if (e.key === back) step(-1); else if (e.key === fwd) step(1);
+  });
+  var reveal = {};
+  byId('full-copy').addEventListener('click', function () {
+    var v = current; if (!v) return;
+    copyText(promptText(v), byId('full-copy'), function () { closeFull(); return reveal[v.id](); });
+  });
+
+  // Compare
+  byId('compare-eyebrow').textContent = L.compareEyebrow;
+  byId('compare-title').textContent = L.compareTitle;
+  if (DATA.axis) { var lede = byId('compare-lede'); lede.appendChild(el('b', '', L.axis + ': ')); rich(lede, DATA.axis); }
+  else byId('compare-lede').hidden = true;
+  var glance = byId('glance'), headRow = document.querySelector('#compare-table thead tr'), compareBody = document.querySelector('#compare-table tbody');
+  [L.colNo, L.colVariation].concat(criteria.map(function (c) { return c.label; }), anySize ? [L.colSize] : []).forEach(function (c) { headRow.appendChild(el('th', '', c)); });
+  if (!criteria.length && !anySize) byId('compare-scroll').hidden = true;
+
+  // Variations
+  byId('variations-eyebrow').textContent = L.variationsEyebrow;
+  byId('variations-title').textContent = L.variationsTitle;
+  byId('variations-lede').textContent = DATA.variationsNote || L.variationsLede;
+  var cards = byId('cards'), lastRound = null;
+
+  variations.forEach(function (v) {
+    var p = v.preview || {}, round = v.round || '';
+
+    // At a glance
+    var thumb = el('a', 'thumb'); thumb.href = '#v' + v.id; thumb.dataset.round = round;
+    if (isHtml(v)) thumb.appendChild(addStage(v, true));
+    else thumb.appendChild(el('pre', 'thumb-text', String(p.code || p.text || '').trim()));
+    var meta = el('span', 'thumb-meta');
+    meta.appendChild(el('span', 'no', v.id)); meta.appendChild(el('span', 'thumb-name', v.name)); badge(meta, v);
+    thumb.appendChild(meta); glance.appendChild(thumb);
+
+    // Comparison row
+    var tr = el('tr'); tr.dataset.round = round;
+    tr.appendChild(el('td', 'num', v.id));
+    var nameCell = el('td', 'wrapcell'), link = el('a', '', v.name); link.href = '#v' + v.id; nameCell.appendChild(link); tr.appendChild(nameCell);
+    criteria.forEach(function (c) {
+      var cell = v.scores ? v.scores[c.id] : null, isObj = cell && typeof cell === 'object';
+      tr.appendChild(el('td', 'soft' + (isObj && cell.tone ? ' ' + cell.tone : ''), cell === undefined || cell === null ? '–' : (isObj ? cell.text : cell)));
+    });
+    if (anySize) { var sizeCell = el('td'); if (v.size) sizeCell.appendChild(sizeMeter(v.size, true)); else sizeCell.textContent = '–'; tr.appendChild(sizeCell); }
+    compareBody.appendChild(tr);
+
+    // Card
+    if (round !== lastRound && roundById[round]) {
+      var rh = el('div', 'tier-head'); rh.dataset.round = round;
+      rh.appendChild(el('span', 'eyebrow', roundById[round].label));
+      if (roundById[round].note) rh.appendChild(el('span', '', roundById[round].note));
+      cards.appendChild(rh);
+    }
+    lastRound = round;
+
+    var card = el('article', 'card' + (pickedId && pickedId !== v.id ? ' passed' : '')); card.id = 'v' + v.id; card.dataset.round = round;
+    var top = el('div', 'card-top');
+    top.appendChild(el('span', 'no', v.id)); badge(top, v);
+    if (v.size) top.appendChild(sizeMeter(v.size));
+    card.appendChild(top);
+    card.appendChild(el('h3', '', v.name));
+    card.appendChild(rich(el('p', 'desc'), v.description));
+    if (v.basedOn && v.basedOn.length) card.appendChild(el('p', 'needs', L.basedOn + ': ' + v.basedOn.join(', ')));
+
+    var preview = el('div', 'preview');
+    if (isHtml(v)) {
+      var ph = el('div', 'preview-head'); ph.appendChild(el('span', 'eyebrow', p.label || L.preview));
+      ph.appendChild(button('btn', L.open, function () { openFull(v); }));
+      preview.appendChild(ph); preview.appendChild(addStage(v, false));
+    } else if (p.type === 'code') {
+      var snip = el('div', 'code snippet'), sh = el('div', 'code-head'); sh.appendChild(el('span', 'eyebrow', p.label || p.language || L.preview));
+      var spre = el('pre', '', String(p.code || '').replace(/\s+$/, '')); spre.tabIndex = 0; spre.dir = 'ltr';
+      snip.appendChild(sh); snip.appendChild(spre); preview.appendChild(snip);
+    } else {
+      preview.appendChild(el('span', 'eyebrow', p.label || L.preview));
+      var sample = rich(el('div', 'sample'), String(p.text || '').trim()); sample.dir = 'auto'; preview.appendChild(sample);
+    }
+    card.appendChild(preview);
+
+    var hasBest = v.bestFor && v.bestFor.length, hasCost = v.tradeoffs && v.tradeoffs.length;
+    if (hasBest || hasCost) {
+      var cols = el('div', 'cols' + (hasBest && hasCost ? '' : ' one'));
+      if (hasBest) { var a = el('div', 'col'); a.appendChild(el('span', 'eyebrow', L.bestFor)); a.appendChild(list(v.bestFor)); cols.appendChild(a); }
+      if (hasCost) { var b = el('div', 'col'); b.appendChild(el('span', 'eyebrow', L.tradeoffs)); b.appendChild(list(v.tradeoffs)); cols.appendChild(b); }
+      card.appendChild(cols);
+    }
+    if (v.landsIn && v.landsIn.length) {
+      var lands = el('div', 'lands'); lands.appendChild(el('span', 'eyebrow', L.lands));
+      v.landsIn.forEach(function (path) { lands.appendChild(el('code', '', path)); }); card.appendChild(lands);
+    }
+
+    card.appendChild(rich(el('p', 'pick'), fill(L.pick, { id: v.id })));
+    var code = el('div', 'code folded'), head = el('div', 'code-head');
+    var pre = el('pre', 'prompt', promptText(v)); pre.id = 'prompt-' + v.id; pre.tabIndex = 0; pre.dir = 'auto'; pre.hidden = true;
+    function setOpen(open) { pre.hidden = !open; code.classList.toggle('folded', !open); fold.setAttribute('aria-expanded', String(open)); }
+    var fold = button('fold', '', function () { setOpen(pre.hidden); });
+    fold.appendChild(el('span', 'eyebrow', fill(L.prompt, { id: v.id })));
+    fold.setAttribute('aria-expanded', 'false'); fold.setAttribute('aria-controls', pre.id);
+    reveal[v.id] = function () { setOpen(true); pre.scrollIntoView({ block: 'nearest' }); return pre; };
+    var copy = button('btn primary', L.copy, function () { copyText(pre.textContent, copy, reveal[v.id]); });
+    head.appendChild(fold); head.appendChild(copy);
+    code.appendChild(head); code.appendChild(pre); card.appendChild(code);
+    cards.appendChild(card);
+  });
+
+  // Recommendation, or the record of what was picked
+  var verdict = DATA.picked || DATA.recommended, verdictVar = verdict && varById[verdict.id];
+  if (verdictVar) {
+    var box = el('div', 'block wide verdict' + (DATA.picked ? ' is-picked' : ''));
+    box.appendChild(el('span', 'eyebrow', DATA.picked ? L.picked : L.recommended));
+    var vh = el('h3'), va = el('a', '', verdictVar.id + ' · ' + verdictVar.name); va.href = '#v' + verdictVar.id; vh.appendChild(va); box.appendChild(vh);
+    var why = DATA.picked ? DATA.picked.note : DATA.recommended.why;
+    if (why) box.appendChild(rich(el('p'), why));
+    byId('verdict').appendChild(box);
+  } else byId('verdict').hidden = true;
+
+  // Tools: rounds on the leading side, viewport on the trailing side
+  var tools = byId('tools'), roundChips = [];
+  function setRound(id) {
+    activeRound = id;
+    roundChips.forEach(function (x) { x[1].setAttribute('aria-pressed', String(x[0] === id)); });
+    document.querySelectorAll('[data-round]').forEach(function (node) { node.hidden = id !== 'all' && node.dataset.round !== id; });
+    fitAll();
+  }
+  if (rounds.length > 1) {
+    [{ id: 'all', label: L.all }].concat(rounds).forEach(function (r) {
+      var c = button('chip', r.label, function () { setRound(r.id); }); c.id = 'round-' + r.id; roundChips.push([r.id, c]); tools.appendChild(c);
+    });
+  }
+  if (variations.some(isHtml)) {
+    var view = el('span', 'view'); viewChips(view); tools.appendChild(view);
+    viewChips(byId('full-view'));
+    byId('full-body').classList.toggle('phone', mode === 'phone');
+  }
+  if (!tools.childNodes.length) tools.hidden = true;
+  // After a new round, open on it: the earlier rounds are one tap away under "All"
+  if (rounds.length > 1) setRound(rounds[rounds.length - 1].id);
+  fitAll();
+
+  rich(byId('footer'), DATA.footer || '');
+  if (!DATA.footer) byId('footer').hidden = true;
+})();
+</script>
+</body>
+</html>

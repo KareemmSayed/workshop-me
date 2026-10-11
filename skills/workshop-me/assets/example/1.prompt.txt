@@ -1,0 +1,33 @@
+Build the Insights page for Fieldnote as a single-figure layout: one large number for the words written this week, one sentence that interprets it, a twelve-week bar trend, and three quiet facts.
+
+Why this direction: the page should answer one question in a second, "am I writing more or less than usual?", and stop. It was chosen over a grid of charts because most people open a page like this for reassurance, not analysis. When a small decision comes up, prefer fewer elements and a clearer sentence over more data.
+
+What exists:
+- src/store/notes.ts exports listNotes({ from, to }), which returns notes with id, createdAt, body and tags. Nothing stores a word count, a streak or a per-day total: all of it has to be derived.
+- src/ui/routes.ts registers screens and src/ui/Sidebar.tsx lists them. Screens live in src/ui/screens.
+- src/ui/theme.css holds the tokens the mockup uses (--paper, --ink, --soft, --rule, --accent, --accent-soft, --serif, --sans). Use the tokens, never literal values.
+- There is no chart library in the project and this page does not need one: the bars are plain elements with a height.
+
+Build:
+1. src/insights/stats.ts, as pure functions with tests in src/insights/__tests__:
+   - wordCount(body): trim, then split on whitespace; an empty body is 0.
+   - weeklyWords(notes, now, weeks = 12): totals per calendar week, Monday to Sunday in the user's local time zone, oldest first, with empty weeks as 0.
+   - changeVsLastWeek(weekly): (this - last) / last, or null when last week is 0. Check value: 4,820 against 4,080 gives 0.18.
+   - streak(notes, now): consecutive days with at least one note, counting back from today, or from yesterday when nothing has been written yet today.
+   - topTag(notes): the tag with the most words this week; a tie goes to the tag used most recently; null when no note has a tag.
+2. src/ui/screens/Insights.tsx, top to bottom:
+   - a small uppercase label, "Insights · this week";
+   - the figure: this week's words in the serif face, very large (clamp between 64px and 120px), with the unit beside it in small sans;
+   - one sentence built from the data, in this order: change against last week, number of notes, biggest day;
+   - the twelve-week bars, the current week in --accent and the rest in --accent-soft, with a text alternative that states the range;
+   - under a hairline, a row of three facts: streak, days written out of 7, most-written-about tag.
+3. Register the route in src/ui/routes.ts and add "Insights" to src/ui/Sidebar.tsx after Search.
+
+States the mockup does not show:
+- No notes at all: replace the page with one line, "Write your first note and this page will start counting", and a link to a new note.
+- Fewer than two weeks of history: show the figure and the facts, and leave out the comparison and the bars instead of drawing a single bar.
+- Last week was 0: say "You wrote nothing last week" in place of a percentage.
+- No tagged notes: leave the third fact out, so the row has two columns.
+- Under 720px wide, the facts stack into one column with hairlines between them.
+
+Out of scope: switching the date range, per-tag breakdowns, a day-by-day view, exporting, and any chart beyond the weekly bars. If one seems needed, list it at the end instead of building it.

@@ -1,0 +1,70 @@
+<style>
+  .head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .range { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; background: var(--card); }
+  .range span { padding: 5px 13px; border-radius: 999px; font-size: 13px; color: var(--soft); }
+  .range .on { background: var(--ink); color: var(--paper); }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .kpi { display: flex; flex-direction: column; gap: 4px; }
+  .kpi b { font: 500 28px/1.1 var(--serif); }
+  .kpi small { font-size: 12.5px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; margin-top: 12px; }
+  .panel h3 { font: 600 14px var(--sans); margin-bottom: 16px; }
+  .tags { display: flex; flex-direction: column; gap: 12px; }
+  .tag-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) 46px; align-items: center; gap: 10px; font-size: 13.5px; }
+  .track { height: 8px; background: var(--quiet); border-radius: 999px; overflow: hidden; }
+  .track i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+  .tag-row span:last-child { text-align: right; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+  .day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--soft); }
+  .day i { width: 100%; height: 44px; border-radius: 8px; background: var(--accent); }
+  .wide { grid-column: 1 / -1; }
+  @media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<div class="app">
+  <aside class="side">
+    <div class="brand">Fieldnote</div>
+    <a href="#">Notes</a><a href="#">Tags</a><a href="#">Search</a><a href="#" class="on">Insights</a><a href="#">Settings</a>
+  </aside>
+  <main class="main">
+    <div class="head">
+      <h1 class="title">Insights</h1>
+      <div class="range" role="group" aria-label="Date range"><span class="on">Week</span><span>Month</span><span>Year</span></div>
+    </div>
+    <div class="kpis">
+      <div class="panel kpi"><span class="muted">Words</span><b>4,820</b><small class="up">+18% vs last week</small></div>
+      <div class="panel kpi"><span class="muted">Notes</span><b>23</b><small class="muted">4 a day when you wrote</small></div>
+      <div class="panel kpi"><span class="muted">Streak</span><b>6 days</b><small class="muted">Best: 14</small></div>
+      <div class="panel kpi"><span class="muted">Days you wrote</span><b>6 of 7</b><small class="muted">Missed Monday</small></div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h3>Words per week</h3>
+        <div class="bars" role="img" aria-label="Words written per week over the last 12 weeks, rising from 2,100 to 4,820">
+          <i style="height:44%"></i><i style="height:55%"></i><i style="height:39%"></i><i style="height:66%"></i><i style="height:58%"></i><i style="height:75%"></i><i style="height:64%"></i><i style="height:50%"></i><i style="height:81%"></i><i style="height:89%"></i><i style="height:85%"></i><i style="height:100%"></i>
+        </div>
+        <div class="axis"><span>12 weeks ago</span><span>This week</span></div>
+      </div>
+      <div class="panel">
+        <h3>By tag</h3>
+        <div class="tags">
+          <div class="tag-row"><span>#meetings</span><div class="track"><i style="width:40%"></i></div><span>1,940</span></div>
+          <div class="tag-row"><span>#ideas</span><div class="track"><i style="width:25%"></i></div><span>1,210</span></div>
+          <div class="tag-row"><span>#journal</span><div class="track"><i style="width:20%"></i></div><span>960</span></div>
+          <div class="tag-row"><span>Other</span><div class="track"><i style="width:15%"></i></div><span>710</span></div>
+        </div>
+      </div>
+      <div class="panel wide">
+        <h3>This week, day by day</h3>
+        <div class="week">
+          <div class="day"><i style="background:var(--quiet)"></i>Mon</div>
+          <div class="day"><i style="opacity:1"></i>Tue</div>
+          <div class="day"><i style="opacity:0.71"></i>Wed</div>
+          <div class="day"><i style="opacity:0.44"></i>Thu</div>
+          <div class="day"><i style="opacity:0.73"></i>Fri</div>
+          <div class="day"><i style="opacity:0.5"></i>Sat</div>
+          <div class="day"><i style="opacity:0.51"></i>Sun</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

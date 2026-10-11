@@ -1,0 +1,35 @@
+Build the Insights page for Fieldnote as a weekly letter: three short paragraphs written from the week's numbers, with a small inline trend and a seven-day strip, and earlier weeks folded underneath.
+
+Why this direction: it was chosen because bare numbers say little to the people this page is for, and a sentence that interprets them says more. The writing is the feature. Every sentence must be true of the data it was built from, and a sentence with nothing to say is left out, never padded.
+
+What exists:
+- src/store/notes.ts exports listNotes({ from, to }), which returns notes with id, createdAt, body and tags. Nothing stores a word count, a streak or a per-day total: all of it has to be derived.
+- src/ui/routes.ts registers screens and src/ui/Sidebar.tsx lists them. Screens live in src/ui/screens.
+- src/ui/strings.ts is the string table; the app is translated. Build each sentence from a whole template, one per case, and never by joining fragments, because word order differs between languages.
+- src/ui/theme.css holds the tokens the mockup uses (--paper, --ink, --soft, --rule, --accent, --accent-soft, --quiet, --serif, --sans). Use the tokens, never literal values.
+
+Build:
+1. src/insights/stats.ts, as pure functions with tests in src/insights/__tests__. Weeks run Monday to Sunday in the user's local time zone.
+   - wordCount(body): trim, then split on whitespace; an empty body is 0.
+   - weekStats(notes, weekStart): words, notes, words per day, busiest day, days off, and share of words per tag (split a note's words evenly between its tags).
+   - weeklyWords(notes, now, weeks = 12) and streak(notes, now).
+2. src/insights/letter.ts: weekLetter(stats, history) returns a list of paragraphs, each a list of typed parts (text, strong, positive, trend), so the screen renders them without parsing strings.
+   - Paragraph 1: words and notes, then the change against the week before as "18% more" or "12% less", or "about the same" inside 3 percent either way. That 3 is a tuning choice: name it as a constant. Add "your most in twelve weeks" only when it is true and twelve weeks of history exist.
+   - Paragraph 2: the busiest day and its words, the days off, and the streak. With no day off, say "You wrote every day".
+   - Paragraph 3: tag shares as everyday fractions, using the nearest of: a tenth, a fifth, a quarter, a third, four in every ten, half, two thirds, three quarters, almost all. Check values: 1,940 of 4,820 is "four in every ten", 1,210 is "a quarter", 960 is "a fifth". Leave the paragraph out when no note has a tag.
+   - Test with a fixed week and assert the exact paragraphs.
+3. src/ui/screens/Insights.tsx:
+   - a small uppercase label with the week's start date, then the serif title "Your week in writing";
+   - the letter in one column, 620px at most, serif at 19px with generous line height;
+   - the trend sits inside paragraph 1: twelve bars in about 64 by 18px, with a text alternative;
+   - the day strip sits after paragraph 2: seven cells, the busiest filled with --accent, days off in --quiet;
+   - under a hairline, the eight weeks before this one as native details elements: the summary shows the week and its words, the body shows that week's first paragraph only.
+4. Register the route in src/ui/routes.ts and add "Insights" to src/ui/Sidebar.tsx after Search.
+
+States the mockup does not show:
+- No notes at all: one line, "Write your first note and this page will start counting", and a link to a new note.
+- The first week of use: leave out the comparison and the trend.
+- A week with no words: "You did not write this week. Your last note was on" followed by the date, and nothing else.
+- Under 720px wide: the letter at 17px.
+
+Out of scope: switching the date range, charts beyond the inline trend and the day strip, sending the letter as an email or a notification, sharing it, and writing the text with a language model: the sentences are templates. If one seems needed, list it at the end instead of building it.

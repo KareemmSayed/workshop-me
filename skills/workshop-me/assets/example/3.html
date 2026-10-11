@@ -1,0 +1,42 @@
+<style>
+  .letter { max-width: 620px; display: flex; flex-direction: column; gap: 22px; margin-top: 18px; }
+  .letter p { font: 400 19px/1.6 var(--serif); }
+  .letter .up { font-weight: 500; }
+  .inline { display: inline-flex; align-items: flex-end; gap: 2px; height: 18px; width: 64px; vertical-align: -2px; margin: 0 4px; }
+  .inline i { flex: 1; background: var(--accent); opacity: 0.4; border-radius: 1px; }
+  .inline i:last-child { opacity: 1; }
+  .days { display: flex; gap: 6px; }
+  .days span { flex: 1; text-align: center; font: 500 12px var(--sans); padding: 7px 0; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+  .days .off { background: var(--quiet); color: var(--soft); }
+  .days .top { background: var(--accent); color: #ffffff; }
+  .past { margin-top: 34px; border-top: 1px solid var(--rule); max-width: 620px; }
+  .past details { border-bottom: 1px solid var(--rule); }
+  .past summary { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; font-size: 14.5px; }
+  .past summary::-webkit-details-marker { display: none; }
+  .past summary span:last-child { color: var(--soft); font-variant-numeric: tabular-nums; }
+  .past details p { font: 400 16px/1.55 var(--serif); padding: 0 0 16px; color: var(--soft); }
+  @media (max-width: 720px) { .letter p { font-size: 17px; } }
+</style>
+<div class="app">
+  <aside class="side">
+    <div class="brand">Fieldnote</div>
+    <a href="#">Notes</a><a href="#">Tags</a><a href="#">Search</a><a href="#" class="on">Insights</a><a href="#">Settings</a>
+  </aside>
+  <main class="main">
+    <span class="kicker">Insights · week of 5 October</span>
+    <h1 class="title">Your week in writing</h1>
+    <div class="letter">
+      <p>You wrote <b>4,820 words</b> in 23 notes, <span class="up">18% more</span> than the week before and your most in twelve weeks <span class="inline" role="img" aria-label="Twelve-week trend, rising"><i style="height:44%"></i><i style="height:55%"></i><i style="height:39%"></i><i style="height:66%"></i><i style="height:58%"></i><i style="height:75%"></i><i style="height:64%"></i><i style="height:50%"></i><i style="height:81%"></i><i style="height:89%"></i><i style="height:85%"></i><i style="height:100%"></i></span>.</p>
+      <p>Most of it happened on Tuesday, when you wrote 1,240 words. Monday was the only day off, which puts your streak at six days.</p>
+      <div class="days" role="img" aria-label="Days written this week: every day except Monday, most on Tuesday">
+        <span class="off">M</span><span class="top">T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+      </div>
+      <p>Four in every ten words went to <b>#meetings</b>. <b>#ideas</b> had a quarter, and <b>#journal</b> a fifth.</p>
+    </div>
+    <div class="past">
+      <details><summary><span>Week of 28 September</span><span>4,080 words</span></summary><p>A steady week: 19 notes over six days, led by #journal.</p></details>
+      <details><summary><span>Week of 21 September</span><span>4,300 words</span></summary><p>Your best week until this one, with a 1,400-word Thursday.</p></details>
+      <details><summary><span>Week of 14 September</span><span>3,900 words</span></summary><p>Five days of writing, most of it in #meetings.</p></details>
+    </div>
+  </main>
+</div>

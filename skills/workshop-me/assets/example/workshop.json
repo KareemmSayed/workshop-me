@@ -1,0 +1,129 @@
+{
+  "project": "Fieldnote",
+  "title": "Fieldnote Insights Workshop",
+  "eyebrow": "Example · fictional project · 3 variations",
+  "headline": "Three ways to build Fieldnote's Insights page",
+  "intro": "**3 variations of one page.** Each has a live mockup, when it is the right choice, what it costs, and a prompt that builds it. This is a made-up example that ships with the skill: Fieldnote does not exist.",
+  "aura": "violet",
+  "axis": "what the page leads with: **one number**, **a grid of numbers**, or **sentences**. The content, the sample week and the app shell are the same in all three.",
+  "brief": {
+    "blocks": [
+      {
+        "title": "What you asked for",
+        "bullets": [
+          "An analytics page that shows people **how much they write**.",
+          "Nothing was said about which numbers, which time range, or how deep it should go, so the variations take three positions on that."
+        ]
+      },
+      {
+        "title": "What Fieldnote already has",
+        "bullets": [
+          "**Data:** `listNotes({ from, to })` in `src/store/notes.ts` returns each note's date, body and tags.",
+          "**Not stored:** word counts, streaks and daily totals. Every variation derives them in a new `src/insights/stats.ts`.",
+          "**Look:** the tokens in `src/ui/theme.css`. The mockups use them unchanged.",
+          "**Missing:** a chart library and a segmented control. Only variation 2 needs to build them."
+        ]
+      },
+      {
+        "title": "Assumed, not asked",
+        "wide": true,
+        "bullets": [
+          "**Words are the measure.** Not notes, not time spent: words are the only one the data supports without guessing.",
+          "**A week is Monday to Sunday** in the reader's own time zone.",
+          "**Private.** No sharing, no comparing with other people.",
+          "**No goals or targets.** The page reports; it does not coach. Say so if that is wrong, because it would change all three."
+        ],
+        "note": "If an assumption is off, say which one and ask for another round."
+      }
+    ]
+  },
+  "criteria": [
+    { "id": "glance", "label": "Answer at a glance" },
+    { "id": "grow", "label": "Room for more numbers" },
+    { "id": "thin", "label": "With little data" },
+    { "id": "parts", "label": "New parts to build" }
+  ],
+  "recommended": {
+    "id": "1",
+    "why": "The request was to show people how much they write. Variation 1 answers that and nothing else, and it is the cheapest to build. Its `src/insights/stats.ts` is the same foundation 2 and 3 need, so starting here closes no doors."
+  },
+  "previewCssFile": "shared.css",
+  "groundRulesFile": "ground-rules.txt",
+  "variations": [
+    {
+      "id": "1",
+      "name": "One number",
+      "size": "S",
+      "description": "The page is a single figure, one sentence that reads it for you, and a quiet trend. It answers \"am I writing more or less than usual?\" and stops.",
+      "preview": { "type": "html", "file": "1.html", "height": 680 },
+      "bestFor": [
+        "People open the page for **reassurance**, not analysis.",
+        "You want it shipped in one short session.",
+        "You are not sure yet which other numbers matter."
+      ],
+      "tradeoffs": [
+        "**No depth.** Nothing by tag, nothing by day.",
+        "A fourth or fifth fact has nowhere to go without redesigning the page."
+      ],
+      "scores": {
+        "glance": { "text": "One second", "tone": "good" },
+        "grow": { "text": "Three facts, then full", "tone": "bad" },
+        "thin": { "text": "Still reads well", "tone": "good" },
+        "parts": { "text": "None", "tone": "good" }
+      },
+      "landsIn": ["src/insights/stats.ts", "src/ui/screens/Insights.tsx", "src/ui/routes.ts", "src/ui/Sidebar.tsx"],
+      "promptFile": "1.prompt.txt"
+    },
+    {
+      "id": "2",
+      "name": "Dashboard grid",
+      "size": "M",
+      "description": "Four headline tiles, a chart of words per period, a breakdown by tag and a day-by-day strip, with a Week, Month and Year switch. The familiar shape, and the one with the most room.",
+      "preview": { "type": "html", "file": "2.html", "height": 800 },
+      "bestFor": [
+        "People ask for **several different numbers**, not one.",
+        "You expect to keep adding metrics.",
+        "A date-range switch matters from day one."
+      ],
+      "tradeoffs": [
+        "**Nothing leads.** The reader has to work out what the page is saying.",
+        "A new user sees mostly empty panels for their first two weeks.",
+        "Three components to build and keep: tile, switch, bars."
+      ],
+      "scores": {
+        "glance": { "text": "Scan four tiles", "tone": "warn" },
+        "grow": { "text": "Add a panel", "tone": "good" },
+        "thin": { "text": "Mostly empty", "tone": "bad" },
+        "parts": { "text": "3 components", "tone": "warn" }
+      },
+      "landsIn": ["src/insights/stats.ts", "src/ui/screens/Insights.tsx", "src/ui/components/StatTile.tsx", "src/ui/components/SegmentedControl.tsx", "src/ui/components/BarSeries.tsx", "src/ui/routes.ts", "src/ui/Sidebar.tsx"],
+      "promptFile": "2.prompt.txt"
+    },
+    {
+      "id": "3",
+      "name": "Weekly letter",
+      "size": "M",
+      "description": "The numbers arrive as three short paragraphs, written from the data, with earlier weeks folded underneath. Analytics for people who would rather read than chart.",
+      "preview": { "type": "html", "file": "3.html", "height": 820 },
+      "bestFor": [
+        "Fieldnote's readers are **writers**: prose suits them better than tiles.",
+        "You want the page to feel like part of the product, not an admin screen.",
+        "Looking back week by week matters more than switching ranges."
+      ],
+      "tradeoffs": [
+        "**Slowest to scan.** The answer is inside a sentence.",
+        "Every sentence needs rules, edge cases and a translation.",
+        "Each new number is a new sentence to write and test."
+      ],
+      "scores": {
+        "glance": { "text": "Read a paragraph", "tone": "warn" },
+        "grow": { "text": "One sentence each", "tone": "warn" },
+        "thin": { "text": "Says less, stays true", "tone": "good" },
+        "parts": { "text": "Sentence rules and tests", "tone": "warn" }
+      },
+      "landsIn": ["src/insights/stats.ts", "src/insights/letter.ts", "src/ui/screens/Insights.tsx", "src/ui/strings.ts", "src/ui/routes.ts", "src/ui/Sidebar.tsx"],
+      "promptFile": "3.prompt.txt"
+    }
+  ],
+  "footer": "Example page shipped with the workshop-me skill. Fieldnote is fictional, and so are its files and its numbers."
+}

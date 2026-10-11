@@ -1,0 +1,35 @@
+Build the Insights page for Fieldnote as a dashboard: a Week / Month / Year switch, four headline tiles, a bar chart of words per period, a breakdown by tag and a day-by-day strip.
+
+Why this direction: it was chosen because people want several different numbers, and a grid gives each one a home and leaves room to add more later. The risk of a grid is that nothing leads. Treat the four tiles as the way in and give everything below them less visual weight than the tiles have.
+
+What exists:
+- src/store/notes.ts exports listNotes({ from, to }), which returns notes with id, createdAt, body and tags. Nothing stores a word count, a streak or a per-day total: all of it has to be derived.
+- src/ui/routes.ts registers screens and src/ui/Sidebar.tsx lists them. Screens live in src/ui/screens, shared components in src/ui/components.
+- src/ui/theme.css holds the tokens the mockup uses (--paper, --card, --ink, --soft, --rule, --accent, --accent-soft, --quiet, --radius). Use the tokens, never literal values.
+- There is no chart library and no segmented control in the project. Both are small enough to build here; do not add a dependency.
+
+Build:
+1. src/insights/stats.ts, as pure functions with tests in src/insights/__tests__. A range is "week", "month" or "year"; weeks run Monday to Sunday in the user's local time zone.
+   - wordCount(body): trim, then split on whitespace; an empty body is 0.
+   - totals(notes, range, now): words, notes, days with at least one note, and days in the range so far.
+   - series(notes, range, now): the last 12 weeks, 12 months or 5 years, oldest first, with empty periods as 0.
+   - change(current, previous): (current - previous) / previous, or null when previous is 0. Check value: 4,820 against 4,080 gives 0.18.
+   - streak(notes, now) and bestStreak(notes): consecutive days with at least one note.
+   - byTag(notes, range, now): words per tag, largest first, the top three and the rest summed as "Other". Split a note's words evenly between its tags, and count untagged notes under "Other", so the rows always add up to the total. Check: a 300-word note tagged ideas and journal adds 150 to each.
+   - byDay(notes, now): words for each day of the current week.
+2. New components in src/ui/components: StatTile (label, value, one supporting line), SegmentedControl (a radio group: arrow keys move, the choice is announced), BarSeries (values in, bars out, last bar emphasised, a text alternative that states the range).
+3. src/ui/screens/Insights.tsx:
+   - header row: the title "Insights" and the range switch, Week by default. Keep the choice in the URL (?range=month) so a reload does not lose it;
+   - four tiles in a row: Words with the change against the previous period; Notes with the average per day written; Streak with the best streak; Days you wrote, as n of the days so far, naming the missed day when exactly one was missed;
+   - two panels in a 3:2 split: words per period, and By tag (name, a track filled to the tag's share, the number);
+   - one full-width panel, "This week, day by day": seven cells whose strength follows each day's share of the busiest day. A day with no writing uses --quiet, not a faint accent, so "nothing" never looks like "a little". Show this panel in the Week range only.
+4. Register the route in src/ui/routes.ts and add "Insights" to src/ui/Sidebar.tsx after Search.
+
+States the mockup does not show:
+- No notes at all: one line, "Write your first note and this page will start counting", and a link to a new note, in place of the grid.
+- Nothing to compare with: the supporting line under Words is left empty, not "+0%".
+- Fewer than two periods of history: hide the bar panel and let By tag take the full width.
+- No tagged notes: hide By tag.
+- Under 720px wide: tiles two by two, panels in one column.
+
+Out of scope: custom date ranges, comparing two ranges, exporting, drilling down into a tag or a day, and goals or targets. If one seems needed, list it at the end instead of building it.

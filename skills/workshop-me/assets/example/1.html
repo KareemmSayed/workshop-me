@@ -1,0 +1,32 @@
+<style>
+  .lead { display: flex; flex-direction: column; gap: 10px; margin: 26px 0 28px; }
+  .figure { font: 500 clamp(64px, 11vw, 120px)/0.95 var(--serif); letter-spacing: -0.02em; }
+  .figure small { font: 400 20px var(--sans); color: var(--soft); letter-spacing: 0; margin-left: 10px; }
+  .sentence { font-size: 18px; max-width: 46ch; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); margin-top: 28px; }
+  .fact { padding: 18px 20px 0 0; display: flex; flex-direction: column; gap: 2px; }
+  .fact b { font: 500 22px var(--serif); }
+  @media (max-width: 720px) { .facts { grid-template-columns: minmax(0, 1fr); } .fact { padding: 14px 0; border-bottom: 1px solid var(--rule); } }
+</style>
+<div class="app">
+  <aside class="side">
+    <div class="brand">Fieldnote</div>
+    <a href="#">Notes</a><a href="#">Tags</a><a href="#">Search</a><a href="#" class="on">Insights</a><a href="#">Settings</a>
+  </aside>
+  <main class="main">
+    <span class="kicker">Insights · this week</span>
+    <div class="lead">
+      <div class="figure">4,820<small>words</small></div>
+      <p class="sentence">You wrote <span class="up">18% more</span> than last week, across 23 notes. Tuesday was your biggest day.</p>
+    </div>
+    <div class="bars" role="img" aria-label="Words written per week over the last 12 weeks, rising from 2,100 to 4,820">
+      <i style="height:44%"></i><i style="height:55%"></i><i style="height:39%"></i><i style="height:66%"></i><i style="height:58%"></i><i style="height:75%"></i><i style="height:64%"></i><i style="height:50%"></i><i style="height:81%"></i><i style="height:89%"></i><i style="height:85%"></i><i style="height:100%"></i>
+    </div>
+    <div class="axis"><span>12 weeks ago</span><span>This week</span></div>
+    <div class="facts">
+      <div class="fact"><span class="muted">Streak</span><b>6 days</b></div>
+      <div class="fact"><span class="muted">Days you wrote</span><b>6 of 7</b></div>
+      <div class="fact"><span class="muted">Most written about</span><b>#meetings</b></div>
+    </div>
+  </main>
+</div>

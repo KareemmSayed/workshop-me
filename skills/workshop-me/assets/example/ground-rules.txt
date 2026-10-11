@@ -1,0 +1,10 @@
+Ground rules for this repo
+- Fieldnote is a TypeScript app. Storage and migrations live in src/store, screens in src/ui/screens, shared components in src/ui/components, design tokens in src/ui/theme.css. Read the files named above before designing; if anything in this prompt disagrees with the code, the code wins: say what differed.
+- The mockup at the end is a picture of the intended result, drawn with sample data. Rebuild it with the project's components and tokens. Where the mockup and this prompt disagree, the prompt wins.
+- Keep calculations as pure functions with named constants, separate from the screens, and test them.
+- Show nothing instead of a made-up or misleading number when there is too little data.
+- Everything must work offline: no network calls, and no new dependency without saying why.
+- Charts and figures need a text alternative; controls need keyboard support and a visible focus state.
+- Match the surrounding code's style and naming.
+- Finish by running the type check, the linter and the tests, then open the page at desktop and phone width and say what you saw. Report exactly what you ran and what passed.
+- Stay inside the scope above. List follow-ups at the end; do not build them.
